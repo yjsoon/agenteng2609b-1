@@ -1,0 +1,824 @@
+<title>Flappy Durian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Bungee&display=swap">
+<style>
+  :root {
+    --ink: #2B2118;
+    --paper: #FFF8E6;
+    --paper-2: #F6ECCF;
+    --flesh: #F2C230;
+    --flesh-deep: #D9A21B;
+    --husk: #5E7F24;
+    --husk-dark: #3E5716;
+    --chili: #C8453A;
+    --night: #1D3318;
+    --muted: #6B5B45;
+    color-scheme: light;
+  }
+  html { height: 100%; box-sizing: border-box; background: var(--night); }
+  body {
+    height: 100%;
+    box-sizing: border-box;
+    padding-block: 12px;
+    padding-inline: 16px;
+    background: var(--night);
+    background-image: radial-gradient(circle at 20% 10%, #2B4A22 0, transparent 45%), radial-gradient(circle at 85% 90%, #28441F 0, transparent 40%);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    font-family: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+    color: var(--ink);
+  }
+  .stage {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 0 0 4px var(--ink), 0 18px 40px rgba(0,0,0,.45);
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    font-size: calc(15px * var(--s, 1));
+  }
+  canvas { display: block; }
+
+  .mute {
+    position: absolute;
+    top: .6em; right: .6em;
+    font: 700 .78em/1 "Baloo 2", system-ui, sans-serif;
+    padding: .45em .7em .35em;
+    border-radius: 999px;
+    border: 2px solid var(--ink);
+    background: rgba(255,248,230,.85);
+    color: var(--ink);
+    cursor: pointer;
+    z-index: 3;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1em;
+    background: rgba(29,51,24,.35);
+    z-index: 2;
+  }
+  .panel {
+    width: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    box-shadow: 0 6px 0 var(--ink);
+    padding: 1.1em 1.1em 1.2em;
+    display: flex;
+    flex-direction: column;
+    gap: .75em;
+  }
+  .eyebrow {
+    margin: 0;
+    font-weight: 700;
+    font-size: .74em;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--husk);
+  }
+  h1, h2 {
+    font-family: "Bungee", "Arial Black", Impact, sans-serif;
+    font-weight: 400;
+    margin: 0;
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+  h1 { font-size: 2.35em; color: var(--ink); }
+  h1 span { color: var(--husk); }
+  h2 { font-size: 1.35em; }
+  .panel p { margin: 0; line-height: 1.35; }
+  .lead { font-size: 1.02em; }
+
+  .tell {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .5em;
+  }
+  .tell > div {
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    padding: .55em .65em .6em;
+    font-size: .86em;
+    line-height: 1.3;
+    background: #fff;
+  }
+  .tell b { display: block; font-size: .92em; margin-bottom: .15em; }
+  .tell .sol b { color: var(--chili); }
+  .tell .prob b { color: var(--husk); }
+
+  .example {
+    display: grid;
+    gap: .3em;
+    font-size: .86em;
+    background: var(--paper-2);
+    border-radius: 10px;
+    padding: .55em .7em;
+  }
+  .example div { display: grid; grid-template-columns: 1.3em 1fr; gap: .3em; line-height: 1.3; }
+  .example .x { color: var(--chili); font-weight: 800; }
+  .example .v { color: var(--husk); font-weight: 800; }
+
+  .speed { display: flex; gap: .5em; align-items: center; flex-wrap: wrap; }
+  .speed-label { font-weight: 700; font-size: .86em; margin-right: .2em; }
+  .seg { display: inline-flex; border: 2px solid var(--ink); border-radius: 999px; overflow: hidden; }
+  .seg button {
+    font: 700 .86em/1 "Baloo 2", system-ui, sans-serif;
+    padding: .5em .95em .4em;
+    border: 0;
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .seg button + button { border-left: 2px solid var(--ink); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--flesh); }
+
+  .btns { display: flex; gap: .6em; flex-wrap: wrap; }
+  .btn {
+    font: 400 1em/1 "Bungee", "Arial Black", sans-serif;
+    padding: .75em 1.1em .7em;
+    border: 3px solid var(--ink);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 0 4px 0 var(--ink);
+    cursor: pointer;
+    transition: transform .06s, box-shadow .06s;
+  }
+  .btn.primary { background: var(--flesh); flex: 1; font-size: 1.15em; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+  .btn:disabled { opacity: .6; cursor: default; }
+  button:focus-visible { outline: 3px solid var(--chili); outline-offset: 3px; }
+
+  .fine { font-size: .76em; color: var(--muted); }
+  .fine a { color: var(--husk-dark); }
+
+  .pair { display: grid; gap: .45em; }
+  .pair .row {
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    padding: .45em .65em .55em;
+    background: #fff;
+  }
+  .tag {
+    display: inline-block;
+    font: 400 .7em/1 "Bungee", sans-serif;
+    letter-spacing: .04em;
+    padding: .35em .5em .3em;
+    border-radius: 6px;
+    margin-bottom: .3em;
+    color: #fff;
+  }
+  .row.sol .tag { background: var(--chili); }
+  .row.prob .tag { background: var(--husk); }
+  .row.picked { box-shadow: 0 0 0 3px var(--chili); }
+  .row p { font-weight: 600; }
+  .why {
+    background: var(--paper-2);
+    border-radius: 10px;
+    padding: .55em .7em;
+    font-size: .92em;
+  }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .45em; }
+  .stat {
+    text-align: center;
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    padding: .35em .2em .4em;
+    background: #fff;
+  }
+  .stat small { display: block; font-size: .7em; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .stat strong { font: 400 1.45em/1.1 "Bungee", sans-serif; font-variant-numeric: tabular-nums; }
+  .stat.rank strong { font: 800 .92em/1.15 "Baloo 2", sans-serif; display: block; padding-top: .2em; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn { transition: none; }
+  }
+</style>
+
+<div class="stage" id="stage">
+  <canvas id="cv" aria-label="Flappy Durian game area"></canvas>
+  <button class="mute" id="mute" type="button">Sound: on</button>
+
+  <section class="overlay" id="menu">
+    <div class="panel">
+      <p class="eyebrow">Product thinking · Problem or solution?</p>
+      <h1>Flappy <span>Durian</span></h1>
+      <p class="lead">Every spiky wall has two gaps. One is a real <b>problem</b>. The other is a <b>solution in disguise</b>. Fly through the problem.</p>
+      <div class="tell">
+        <div class="sol"><b>Solution in disguise</b>Names a thing to do or build: an app, a poster, a robot, a ban, “use AI to…”, “we need more…”</div>
+        <div class="prob"><b>Problem</b>Says who is struggling, what goes wrong, and what it costs them. It doesn't pick a fix.</div>
+      </div>
+      <div class="example">
+        <div><span class="x">✗</span><span>“Build an app to pre-order canteen food”</span></div>
+        <div><span class="v">✓</span><span>“Students queue 15 minutes for chicken rice and miss half of recess”</span></div>
+      </div>
+      <div class="speed">
+        <span class="speed-label">Speed</span>
+        <span class="seg" role="group" aria-label="Speed">
+          <button type="button" id="mChill" aria-pressed="true">Chill</button>
+          <button type="button" id="mRush" aria-pressed="false">Rush</button>
+        </span>
+      </div>
+      <div class="btns"><button class="btn primary" id="play" type="button">Play</button></div>
+      <p class="fine">Tap, click or press Space to flap. <span id="bestLine"></span></p>
+      <p class="fine">Based on Module 1 of the Institute of Digital Government's <a href="https://www.idg.gov.sg/guides-and-resources/productthinking1/" target="_blank" rel="noopener">Product Thinking</a> pathway: great products start with problems, not solutions.</p>
+    </div>
+  </section>
+
+  <section class="overlay" id="over" hidden>
+    <div class="panel">
+      <h2 id="overTitle">Splat!</h2>
+      <p id="overSub"></p>
+      <div class="pair">
+        <div class="row sol" id="solRow"><span class="tag">Solution in disguise</span><p id="solText"></p></div>
+        <div class="row prob"><span class="tag">Problem</span><p id="probText"></p></div>
+      </div>
+      <p class="why" id="why"></p>
+      <div class="stats">
+        <div class="stat"><small>Score</small><strong id="sScore">0</strong></div>
+        <div class="stat"><small>Best</small><strong id="sBest">0</strong></div>
+        <div class="stat rank"><small>Rank</small><strong id="sRank">Durian Seedling</strong></div>
+      </div>
+      <p class="fine" id="nextRank"></p>
+      <div class="btns">
+        <button class="btn primary" id="again" type="button">Fly again</button>
+        <button class="btn" id="toMenu" type="button">Menu</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  // Statement pairs, grouped by how well the solution is disguised.
+  // t1: names an artefact outright. t2: dressed up as a need. t3: a real struggle followed by a fix.
+  const PAIRS = [
+    { t: 1, s: "Build an app to pre-order canteen food", p: "Students queue 15 minutes for chicken rice and miss half of recess", why: "It names a thing to build: an app. It says nothing about who is stuck or what it costs them." },
+    { t: 1, s: "Make a website for the lost-and-found", p: "Lost PE shirts pile up in the office and owners never find them", why: "A website is a fix. The problem is the shirts that never get back to their owners." },
+    { t: 1, s: "Put up more posters about CCA trials", p: "Sec 1s miss CCA trials because they hear about them too late", why: "Posters are one possible fix. It skips who is missing out and why." },
+    { t: 1, s: "Create a homework tracker app", p: "Students miss deadlines when three subjects set work on the same day", why: "It names the thing to build before anyone has checked why deadlines get missed." },
+    { t: 1, s: "Install a second water cooler near the field", p: "After PE, the water cooler queue makes the class late for next lesson", why: "A second cooler is a fix. It jumps past the real trouble: the queue making students late." },
+    { t: 1, s: "Start a Telegram channel for class announcements", p: "Half the class misses changes to the timetable", why: "A Telegram channel is a tool to set up. What goes wrong today is students missing timetable changes." },
+    { t: 1, s: "Get a robot to wipe the canteen tables", p: "Tables are still sticky when second recess starts", why: "A robot is a (very expensive) thing to buy. The problem is the sticky tables." },
+    { t: 1, s: "Build a chatbot for the student handbook", p: "Sec 1s keep asking teachers the same questions about school rules", why: "A chatbot is an artefact. Maybe a one-page FAQ would do, but you only find that out by starting from the problem." },
+    { t: 1, s: "Ban durians from the class party", p: "Three classmates felt sick from the smell at the last class party", why: "Even a ban is a solution: it picks the fix. The problem is classmates feeling sick. (Sorry, durian.)" },
+    { t: 1, s: "Make an app that shows which toilets are free", p: "The only girls' toilet on level 3 has a queue every recess", why: "An app is a thing to build. The problem is the recess queue." },
+
+    { t: 2, s: "We need more lockers", p: "Students lug 6 kg school bags up four floors every day", why: "“We need…” makes it sound like a problem, but lockers are the fix. Heavy bags are the problem." },
+    { t: 2, s: "Students need a reminder app for PE attire", p: "Students who forget PE attire sit out and lose PE marks", why: "“Students need an app” still names the thing to build. The problem is students sitting out." },
+    { t: 2, s: "The school should use AI to mark spelling tests", p: "Spelling tests take two weeks to come back, so students repeat mistakes", why: "“Use AI to…” is the most common disguise. It picks the tool before naming what goes wrong." },
+    { t: 2, s: "Let's put a suggestion box outside the general office", p: "Students have complaints about the toilets but don't know who to tell", why: "A suggestion box is a fix. The problem is complaints that never reach anyone." },
+    { t: 2, s: "We should shorten morning assembly", p: "Students who arrive at 7:25 have no time to buy breakfast", why: "Shortening assembly is an action to take. The problem is students going hungry." },
+    { t: 2, s: "Every class needs a digital noticeboard", p: "Students see the excursion notice only after the form is due", why: "“Needs a noticeboard” names the thing to build. The problem is notices arriving too late." },
+    { t: 2, s: "Let's hold an extra briefing on exam rules", p: "Some students bring calculators that aren't allowed into exams", why: "A briefing is a fix. The problem is the wrong calculators turning up." },
+    { t: 2, s: "Put a vending machine on level 4", p: "Students on level 4 can't reach the canteen and back in a 10-minute break", why: "A vending machine is a thing to buy. The problem is a break too short to get food." },
+    { t: 2, s: "We need an online booking system for the music room", p: "Two bands turn up for the music room at the same time most weeks", why: "“We need a booking system” sounds like a need, but it names what to build." },
+    { t: 2, s: "The library needs a faster printer", p: "Students queue 20 minutes to print notes before exams", why: "A faster printer is a fix. The problem is the 20-minute queue." },
+
+    { t: 3, s: "Sec 1s get lost, so let's paint arrows on the floor", p: "Sec 1s get lost in the new block and are late for lab lessons", why: "It starts with a real struggle, then picks a fix. Once it names what to do, it's a solution." },
+    { t: 3, s: "Students are stressed, so let's try a mindfulness app", p: "Many Sec 4s say they sleep under 6 hours a night during prelims", why: "It mentions a real struggle but ends in a thing to build." },
+    { t: 3, s: "Fewer Sec 2s join CCAs, so make a CCA TikTok page", p: "Sec 2s quit their CCA after one term and no one knows why", why: "It spots a real drop-off, then jumps to a TikTok page. Nobody knows why they quit yet." },
+    { t: 3, s: "Borrowing is slow, so add self-checkout to the library", p: "Students give up borrowing because the counter is only open at recess", why: "It names the fix (self-checkout). The problem says who gives up and why." },
+    { t: 3, s: "To cut food waste, give prizes for clean plates", p: "The canteen throws away about 30 plates of rice every day", why: "Prizes are a fix. The problem is the 30 plates. Maybe the portions are just too big." },
+    { t: 3, s: "Use AI to make personalised revision plans", p: "Students revise the chapters they like, not the ones they fail", why: "“Use AI to…” again. The problem underneath: students avoiding their weak chapters." },
+    { t: 3, s: "Parents miss letters, so send them by SMS instead", p: "Parents miss consent-form deadlines because letters stay in school bags", why: "Switching to SMS is the fix. The problem is letters stuck in bags." },
+    { t: 3, s: "To help sleepy students, move PE to the afternoon", p: "Students nod off in first period after early-morning training", why: "It mentions sleepy students but ends by choosing a fix." },
+    { t: 3, s: "Replace worksheets with an e-learning game", p: "Students copy worksheet answers from friends without understanding them", why: "An e-learning game is a thing to build. The problem is copying without understanding." },
+    { t: 3, s: "The hall is hot, so install more fans", p: "Students feel faint standing through long assemblies in the hot hall", why: "Fans are a fix. The problem is students feeling faint." },
+    { t: 3, s: "Sell durian puffs to raise money for the class trip", p: "Half the class can't afford the $80 class trip", why: "Selling durian puffs is a plan (a tasty one). The problem is classmates who can't afford the trip." }
+  ];
+  const PROBLEM_NOTE = "The problem names who is struggling and what goes wrong, and leaves the fix open.";
+
+  const RANKS = [
+    [0, "Durian Seedling"], [3, "Durian Sniffer"], [6, "Problem Spotter"],
+    [10, "Husk Cracker"], [15, "D24 Detective"], [20, "Musang King of Problems"]
+  ];
+
+  const W = 420, H = 680, GROUND = 604;
+  const BIRD_X = 110, R = 17;
+  const PIPE_W = 64, CARD_W = 200, CARD_GAP = 14, LH = 17;
+  const CARD_FONT = "600 14.5px 'Baloo 2', 'Trebuchet MS', sans-serif";
+  const MODES = {
+    chill: { speed: 76, gap: 148, g: 1250, flap: -390 },
+    rush:  { speed: 110, gap: 128, g: 1450, flap: -430 }
+  };
+
+  const stage = document.getElementById("stage");
+  const cv = document.getElementById("cv");
+  const ctx = cv.getContext("2d");
+  const $ = id => document.getElementById(id);
+
+  let mode = "chill", M = MODES.chill;
+  let state = "menu";
+  let bird = { y: 300, vy: 0, rot: 0, split: 0 };
+  let gates = [], deck = [], score = 0, t = 0, bgX = 0, dying = 0, crash = null, lastFlap = -1;
+  let lastSide = null, sideRun = 0;
+
+  // ---------- storage ----------
+  function getBest(m) { try { return +localStorage.getItem("fd-best-" + m) || 0; } catch (e) { return 0; } }
+  function setBest(m, v) { try { localStorage.setItem("fd-best-" + m, String(v)); } catch (e) {} }
+  function refreshBestLine() {
+    const c = getBest("chill"), r = getBest("rush");
+    $("bestLine").textContent = (c || r) ? `Best: Chill ${c} · Rush ${r}` : "";
+  }
+
+  // ---------- sound ----------
+  let actx = null, muted = false;
+  function sfx(kind) {
+    if (muted) return;
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      const n = actx.currentTime;
+      const tone = (type, f0, f1, dur, vol, delay = 0) => {
+        const o = actx.createOscillator(), g = actx.createGain();
+        o.type = type; o.connect(g); g.connect(actx.destination);
+        o.frequency.setValueAtTime(f0, n + delay);
+        o.frequency.exponentialRampToValueAtTime(f1, n + delay + dur);
+        g.gain.setValueAtTime(vol, n + delay);
+        g.gain.exponentialRampToValueAtTime(0.001, n + delay + dur);
+        o.start(n + delay); o.stop(n + delay + dur + 0.02);
+      };
+      if (kind === "flap") tone("triangle", 380, 700, 0.1, 0.07);
+      if (kind === "ding") { tone("sine", 880, 880, 0.12, 0.09); tone("sine", 1320, 1320, 0.18, 0.09, 0.08); }
+      if (kind === "splat") { tone("sawtooth", 300, 60, 0.35, 0.08); }
+      if (kind === "bonk") { tone("square", 180, 55, 0.3, 0.07); }
+    } catch (e) {}
+  }
+  $("mute").addEventListener("click", () => {
+    muted = !muted;
+    $("mute").textContent = muted ? "Sound: off" : "Sound: on";
+  });
+
+  // ---------- layout ----------
+  function fit() {
+    const cs = getComputedStyle(document.body);
+    const availW = document.body.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const availH = document.body.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    const scale = Math.max(0.3, Math.min(availW / W, availH / H));
+    const cw = Math.floor(W * scale), ch = Math.floor(H * scale);
+    stage.style.width = cw + "px";
+    stage.style.height = ch + "px";
+    stage.style.setProperty("--s", scale.toFixed(3));
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(cw * dpr);
+    cv.height = Math.round(ch * dpr);
+    cv.style.width = cw + "px";
+    cv.style.height = ch + "px";
+    ctx.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0);
+  }
+  window.addEventListener("resize", fit);
+
+  // ---------- helpers ----------
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const hash = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  function rr(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function wrap(text, maxW) {
+    ctx.font = CARD_FONT;
+    const lines = []; let line = "";
+    for (const w of text.split(" ")) {
+      const test = line ? line + " " + w : w;
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; } else line = test;
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+  function rankFor(s) { let r = RANKS[0]; for (const k of RANKS) if (s >= k[0]) r = k; return r; }
+
+  // ---------- game flow ----------
+  function buildDeck() {
+    const by = n => shuffle(PAIRS.filter(p => p.t === n));
+    return [...by(1), ...by(2), ...by(3)];
+  }
+  function speedNow() { return M.speed * (1 + Math.min(score, 20) * 0.015); }
+
+  function makeGate() {
+    if (!deck.length) deck = shuffle(PAIRS.slice());
+    const pair = deck.shift();
+    let problemTop = Math.random() < 0.5;
+    if (sideRun >= 2 && problemTop === lastSide) problemTop = !problemTop;
+    sideRun = problemTop === lastSide ? sideRun + 1 : 1;
+    lastSide = problemTop;
+    const centres = [rand(168, 228), rand(424, 494)];
+    const texts = problemTop ? [pair.p, pair.s] : [pair.s, pair.p];
+    const gaps = centres.map((c, i) => {
+      const lines = wrap(texts[i], CARD_W - 24);
+      return { c, top: c - M.gap / 2, bot: c + M.gap / 2, correct: (i === 0) === problemTop, lines, h: lines.length * LH + 16 };
+    });
+    return { x: W + CARD_W + CARD_GAP + 6, pair, gaps, judged: false, picked: -1, flash: 0 };
+  }
+
+  function startRun() {
+    M = MODES[mode];
+    bird = { y: 300, vy: 0, rot: 0, split: 0 };
+    gates = []; score = 0; crash = null; dying = 0; lastSide = null; sideRun = 0;
+    deck = buildDeck();
+    $("menu").hidden = true; $("over").hidden = true;
+    state = "ready";
+    stage.focus?.();
+  }
+
+  function flap() {
+    if (state === "ready") state = "play";
+    if (state !== "play") return;
+    bird.vy = M.flap;
+    lastFlap = t;
+    sfx("flap");
+  }
+
+  function currentGate() {
+    return gates.find(g => !g.judged && g.x + PIPE_W > BIRD_X - R) || gates[gates.length - 1];
+  }
+
+  function die(kind, gate) {
+    if (state !== "play") return;
+    state = "dying";
+    dying = 0;
+    crash = { kind, gate };
+    bird.vy = kind === "wrong" ? -160 : Math.min(bird.vy, 0) * 0.3;
+    sfx(kind === "wrong" ? "splat" : "bonk");
+  }
+
+  function circleRect(cx, cy, r, x, y, w, h) {
+    const nx = clamp(cx, x, x + w), ny = clamp(cy, y, y + h);
+    return (cx - nx) ** 2 + (cy - ny) ** 2 < r * r;
+  }
+  function hitsWall(g) {
+    const r = R * 0.78, [a, b] = g.gaps;
+    return circleRect(BIRD_X, bird.y, r, g.x, -50, PIPE_W, a.top + 50) ||
+           circleRect(BIRD_X, bird.y, r, g.x, a.bot, PIPE_W, b.top - a.bot) ||
+           circleRect(BIRD_X, bird.y, r, g.x, b.bot, PIPE_W, GROUND - b.bot);
+  }
+
+  function update(dt) {
+    t += dt;
+    const sp = state === "play" ? speedNow() : (state === "dying" || state === "over") ? 0 : M.speed * 0.6;
+    bgX += sp * dt;
+
+    if (state === "menu" || state === "ready") {
+      bird.y = 300 + Math.sin(t * 3) * 8;
+      bird.rot = 0;
+    }
+
+    if (state === "play") {
+      bird.vy += M.g * dt;
+      bird.y += bird.vy * dt;
+      if (bird.y < R) { bird.y = R; bird.vy = Math.max(bird.vy, 0); }
+      bird.rot = clamp(bird.vy / 650, -0.45, 1.2);
+
+      if (!gates.length || gates[gates.length - 1].x < BIRD_X - 30) gates.push(makeGate());
+      for (const g of gates) g.x -= sp * dt;
+      gates = gates.filter(g => g.x > -PIPE_W - 20);
+
+      if (bird.y + R * 0.85 >= GROUND) { bird.y = GROUND - R * 0.85; die("wall", currentGate()); }
+
+      for (const g of gates) {
+        if (state !== "play") break;
+        if (BIRD_X + R * 0.8 <= g.x || BIRD_X - R * 0.8 >= g.x + PIPE_W) continue;
+        if (hitsWall(g)) { die("wall", g); break; }
+        if (!g.judged) {
+          const i = g.gaps.findIndex(gp => bird.y > gp.top && bird.y < gp.bot);
+          if (i >= 0) {
+            g.judged = true; g.picked = i; g.flash = 1;
+            if (g.gaps[i].correct) { score++; sfx("ding"); }
+            else { die("wrong", g); break; }
+          }
+        }
+      }
+    }
+
+    if (state === "dying") {
+      dying += dt;
+      if (crash.kind === "wrong") {
+        bird.split = Math.min(12, dying * 45);
+        bird.vy += M.g * 0.35 * dt;
+      } else {
+        bird.vy += M.g * dt;
+        bird.rot = Math.min(1.6, bird.rot + dt * 5);
+      }
+      bird.y += bird.vy * dt;
+      if (bird.y + R * 0.85 >= GROUND) {
+        bird.y = GROUND - R * 0.85; bird.vy = 0;
+        if (crash.kind === "wall") bird.split = Math.min(5, bird.split + dt * 30);
+      }
+      if (dying > 1.05) showOver();
+    }
+
+    for (const g of gates) g.flash = Math.max(0, g.flash - dt * 1.6);
+  }
+
+  function showOver() {
+    state = "over";
+    const best = Math.max(getBest(mode), score);
+    setBest(mode, best);
+    const g = crash.gate;
+    const wrong = crash.kind === "wrong";
+    $("overTitle").textContent = wrong ? "Splat! That was a solution in disguise" : "Bonk! You hit the husk";
+    $("overSub").textContent = wrong
+      ? "You flew through the solution. Here's how to tell them apart:"
+      : "Here's the gate you were flying at. Did you know which gap was the problem?";
+    if (g) {
+      $("solText").textContent = "“" + g.pair.s + "”";
+      $("probText").textContent = "“" + g.pair.p + "”";
+      $("why").textContent = g.pair.why + " " + PROBLEM_NOTE;
+    }
+    $("solRow").classList.toggle("picked", wrong);
+    $("sScore").textContent = score;
+    $("sBest").textContent = best;
+    const rank = rankFor(score);
+    $("sRank").textContent = rank[1];
+    const next = RANKS.find(k => k[0] > score);
+    $("nextRank").textContent = next
+      ? `${next[0] - score} more problem${next[0] - score === 1 ? "" : "s"} to reach ${next[1]}.`
+      : "You've reached the top rank. Try Rush mode if you haven't yet.";
+    const again = $("again");
+    again.disabled = true;
+    $("over").hidden = false;
+    setTimeout(() => { again.disabled = false; again.focus(); }, 550);
+    refreshBestLine();
+  }
+
+  // ---------- drawing ----------
+  function durianBody(r) {
+    const n = 15, spike = 0.24, rx = r, ry = r * 0.9;
+    ctx.beginPath();
+    for (let i = 0; i < n * 2; i++) {
+      const a = (i / (n * 2)) * Math.PI * 2;
+      const k = i % 2 === 0 ? 1 + spike : 0.98;
+      const px = Math.cos(a) * rx * k, py = Math.sin(a) * ry * k;
+      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fillStyle = "#93AC3B"; ctx.fill();
+    ctx.lineWidth = Math.max(1.2, r * 0.11); ctx.strokeStyle = "#4B6118"; ctx.stroke();
+    if (r > 10) {
+      ctx.fillStyle = "#6F8A27";
+      for (const [dx, dy] of [[-0.45, -0.35], [0.05, -0.55], [-0.6, 0.2], [-0.15, 0.1], [0.2, 0.55], [-0.35, 0.55]]) {
+        const x = dx * r, y = dy * r, s = r * 0.13;
+        ctx.beginPath(); ctx.moveTo(x - s, y + s); ctx.lineTo(x, y - s); ctx.lineTo(x + s, y + s); ctx.closePath(); ctx.fill();
+      }
+    }
+    ctx.fillStyle = "#6B4A2B";
+    ctx.fillRect(-r * 0.1, -r * 1.28, r * 0.2, r * 0.36);
+  }
+
+  function drawDurian(x, y, r, o = {}) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(o.rot || 0);
+    const split = o.split || 0;
+    if (split > 0) {
+      for (const s of [-1, 1]) {
+        ctx.save();
+        ctx.translate(0, s * split * 0.6);
+        ctx.rotate(s * split * 0.025);
+        ctx.beginPath(); ctx.rect(-r * 2, s < 0 ? -r * 2 : 0, r * 4, r * 2); ctx.clip();
+        durianBody(r);
+        ctx.fillStyle = "#F6D35B";
+        ctx.beginPath(); ctx.ellipse(0, 0, r * 0.8, r * 0.62, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#E4AE2E";
+        for (const px of [-0.42, 0, 0.42]) { ctx.beginPath(); ctx.ellipse(px * r, 0, r * 0.2, r * 0.3, 0, 0, Math.PI * 2); ctx.fill(); }
+        ctx.restore();
+      }
+    } else {
+      durianBody(r);
+      if (o.face) {
+        ctx.fillStyle = "rgba(232,120,110,.55)";
+        ctx.beginPath(); ctx.arc(r * 0.2, r * 0.3, r * 0.13, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#fff"; ctx.strokeStyle = "#2B2118"; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(r * 0.42, -r * 0.2, r * 0.3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#2B2118";
+        ctx.beginPath(); ctx.arc(r * 0.52, -r * 0.18, r * 0.13, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.lineWidth = 1.8; ctx.arc(r * 0.48, r * 0.18, r * 0.2, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+      }
+      if (o.wing != null) {
+        ctx.save();
+        ctx.translate(-r * 0.3, r * 0.05);
+        ctx.rotate(o.wing);
+        ctx.fillStyle = "#FFF6DA"; ctx.strokeStyle = "#4B6118"; ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.ellipse(-r * 0.2, 0, r * 0.55, r * 0.3, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.restore();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawBackground() {
+    const sky = ctx.createLinearGradient(0, 0, 0, GROUND);
+    sky.addColorStop(0, "#86CFDD"); sky.addColorStop(0.62, "#CFEFD9"); sky.addColorStop(1, "#F3EBC3");
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, W, GROUND);
+    ctx.fillStyle = "rgba(255,244,196,.9)";
+    ctx.beginPath(); ctx.arc(318, 150, 36, 0, Math.PI * 2); ctx.fill();
+
+    // School blocks, far layer
+    const off1 = bgX * 0.15, tw1 = 118;
+    for (let i = Math.floor(off1 / tw1) - 1; i * tw1 - off1 < W + tw1; i++) {
+      const x = i * tw1 - off1, h = 110 + hash(i) * 120, w = 92 + hash(i + 9) * 20, y = GROUND - h;
+      ctx.fillStyle = "#A7C8C2"; ctx.fillRect(x, y, w, h);
+      if (i % 3 === 0) { ctx.fillStyle = "#D9896A"; ctx.fillRect(x, y, w, 8); }
+      ctx.fillStyle = "#C3DDD7";
+      for (let yy = y + 18; yy < GROUND - 18; yy += 20) ctx.fillRect(x + 8, yy, w - 16, 5);
+    }
+
+    // Durian trees, mid layer
+    const off2 = bgX * 0.4, tw2 = 150;
+    for (let i = Math.floor(off2 / tw2) - 1; i * tw2 - off2 < W + tw2; i++) {
+      const x = i * tw2 - off2 + hash(i + 3) * 30, top = GROUND - 150 - hash(i + 5) * 40;
+      ctx.fillStyle = "#5A4130"; ctx.fillRect(x + 56, top + 20, 12, GROUND - top - 20);
+      ctx.fillStyle = "#34612A";
+      for (const [dx, dy, rr2] of [[40, 22, 34], [82, 18, 36], [62, -4, 34]]) { ctx.beginPath(); ctx.arc(x + dx, top + dy, rr2, 0, Math.PI * 2); ctx.fill(); }
+      ctx.fillStyle = "#2A5021";
+      ctx.beginPath(); ctx.arc(x + 62, top + 30, 26, 0, Math.PI * 2); ctx.fill();
+      const count = 2 + Math.floor(hash(i + 7) * 2);
+      for (let k = 0; k < count; k++) {
+        const hx = x + 30 + k * 28 + hash(i * 3 + k) * 10, hy = top + 52 + hash(i * 5 + k) * 18;
+        ctx.strokeStyle = "#5A4130"; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(hx, top + 36); ctx.lineTo(hx, hy - 8); ctx.stroke();
+        drawDurian(hx, hy, 7.5);
+      }
+    }
+  }
+
+  function drawGround() {
+    ctx.fillStyle = "#EDE4C9"; ctx.fillRect(0, GROUND, W, 7);
+    ctx.fillStyle = "#C65B3E"; ctx.fillRect(0, GROUND + 7, W, H - GROUND - 7);
+    ctx.fillStyle = "rgba(255,255,255,.75)";
+    ctx.fillRect(0, GROUND + 30, W, 2.5);
+    ctx.fillRect(0, GROUND + 55, W, 2.5);
+    const o = bgX % 90;
+    for (let x = -o; x < W; x += 90) { ctx.fillRect(x, GROUND + 38, 26, 9); }
+  }
+
+  function tri(x1, y1, x2, y2, x3, y3) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.closePath(); ctx.fill(); }
+
+  function drawHusk(x, y, w, h, capTop, capBot) {
+    if (h <= 0) return;
+    ctx.fillStyle = "#5E7F24"; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = "rgba(255,255,255,.13)"; ctx.fillRect(x + 7, y, 8, h);
+    ctx.fillStyle = "#4A6619";
+    for (let yy = y + 12, row = 0; yy < y + h - 6; yy += 15, row++) {
+      for (let xx = x + 12 + (row % 2) * 8; xx < x + w - 6; xx += 16) tri(xx - 4, yy + 4, xx, yy - 4, xx + 4, yy + 4);
+    }
+    ctx.fillStyle = "#3E5716";
+    for (let yy = y + 5; yy < y + h - 5; yy += 13) {
+      tri(x, yy, x - 6, yy + 5, x, yy + 10);
+      tri(x + w, yy, x + w + 6, yy + 5, x + w, yy + 10);
+    }
+    const lip = (ly, dir) => {
+      ctx.fillStyle = "#7A9B30"; ctx.fillRect(x - 5, ly, w + 10, 14);
+      ctx.strokeStyle = "#3E5716"; ctx.lineWidth = 2; ctx.strokeRect(x - 5, ly, w + 10, 14);
+      ctx.fillStyle = "#3E5716";
+      const edge = dir < 0 ? ly : ly + 14;
+      for (let xx = x - 3; xx < x + w + 3; xx += 11) tri(xx, edge, xx + 5.5, edge + dir * 5, xx + 11, edge);
+    };
+    if (capTop) lip(y, -1);
+    if (capBot) lip(y + h - 14, 1);
+  }
+
+  function drawGate(g) {
+    const [a, b] = g.gaps;
+    drawHusk(g.x, 0, PIPE_W, a.top, false, true);
+    drawHusk(g.x, a.bot, PIPE_W, b.top - a.bot, true, true);
+    drawHusk(g.x, b.bot, PIPE_W, GROUND - b.bot, true, false);
+    if (g.picked >= 0) {
+      const gp = g.gaps[g.picked], ok = gp.correct;
+      if (g.flash > 0) {
+        ctx.fillStyle = ok ? `rgba(242,194,48,${0.55 * g.flash})` : `rgba(200,69,58,${0.55 * g.flash})`;
+        ctx.fillRect(g.x - 5, gp.top, PIPE_W + 10, gp.bot - gp.top);
+      }
+      const label = ok ? "PROBLEM ✓" : "SOLUTION ✗";
+      ctx.font = "15px Bungee, 'Arial Black', sans-serif";
+      const tw = ctx.measureText(label).width + 18;
+      const lx = g.x + PIPE_W / 2 - tw / 2, ly = gp.top - 34;
+      ctx.fillStyle = ok ? "#F2C230" : "#C8453A";
+      rr(lx, ly, tw, 26, 8); ctx.fill();
+      ctx.lineWidth = 2.5; ctx.strokeStyle = "#2B2118"; ctx.stroke();
+      ctx.fillStyle = ok ? "#2B2118" : "#fff";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(label, lx + tw / 2, ly + 14);
+      ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    }
+  }
+
+  function drawCards(g) {
+    if (g.judged && g.picked >= 0 && g.gaps[g.picked].correct && g.x < BIRD_X - 40) return;
+    const right = g.x - CARD_GAP, left = right - CARD_W;
+    const alpha = state === "play" ? clamp((g.x - (BIRD_X + 60)) / 110, 0.12, 1) : 1;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font = CARD_FONT;
+    for (const gp of g.gaps) {
+      const y = clamp(gp.c - gp.h / 2, 96, GROUND - gp.h - 6);
+      ctx.fillStyle = "#2B2118"; rr(left + 3, y + 3, CARD_W, gp.h, 9); ctx.fill();
+      ctx.fillStyle = "#FFF8E6"; rr(left, y, CARD_W, gp.h, 9); ctx.fill();
+      ctx.lineWidth = 2.5; ctx.strokeStyle = "#2B2118"; ctx.stroke();
+      ctx.fillStyle = "#2B2118";
+      tri(right + 1, gp.c - 7, right + CARD_GAP - 1, gp.c, right + 1, gp.c + 7);
+      ctx.textBaseline = "middle";
+      gp.lines.forEach((ln, i) => ctx.fillText(ln, left + 12, y + 8 + LH * (i + 0.5) + 1));
+      ctx.textBaseline = "alphabetic";
+    }
+    ctx.restore();
+  }
+
+  function outlinedText(text, x, y, size, fill) {
+    ctx.font = `${size}px Bungee, 'Arial Black', sans-serif`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.lineJoin = "round"; ctx.lineWidth = size * 0.22; ctx.strokeStyle = "#2B2118";
+    ctx.strokeText(text, x, y);
+    ctx.fillStyle = fill; ctx.fillText(text, x, y);
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  }
+
+  function pill(text, cx, cy, bg, fg, size = 12) {
+    ctx.font = `${size}px Bungee, 'Arial Black', sans-serif`;
+    const w = ctx.measureText(text).width + 24, h = size + 14;
+    ctx.fillStyle = bg; rr(cx - w / 2, cy - h / 2, w, h, h / 2); ctx.fill();
+    ctx.lineWidth = 2.5; ctx.strokeStyle = "#2B2118"; ctx.stroke();
+    ctx.fillStyle = fg; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(text, cx, cy + 1);
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  }
+
+  function draw() {
+    drawBackground();
+    for (const g of gates) drawGate(g);
+    drawGround();
+    for (const g of gates) drawCards(g);
+
+    const since = t - lastFlap;
+    const wing = state === "play" ? (since < 0.25 ? Math.sin(since * 40) * 0.9 : Math.sin(t * 6) * 0.25)
+               : state === "dying" || state === "over" ? 0.4 : Math.sin(t * 9) * 0.6;
+    drawDurian(BIRD_X, bird.y, R, { rot: bird.rot, wing, face: true, split: bird.split });
+
+    if (state === "play" || state === "ready" || state === "dying") {
+      outlinedText(String(score), W / 2, 42, 40, "#FFF8E6");
+      pill("Fly through the PROBLEM", W / 2, 84, "#2B2118", "#F2C230");
+    }
+    if (state === "ready") {
+      pill("Tap, click or Space to flap", W / 2, 372, "#FFF8E6", "#2B2118", 11);
+    }
+  }
+
+  // ---------- input ----------
+  stage.addEventListener("pointerdown", e => {
+    if (e.target.closest(".overlay, .mute")) return;
+    if (state === "ready" || state === "play") { e.preventDefault(); flap(); }
+  });
+  window.addEventListener("keydown", e => {
+    if (e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW") {
+      if (state === "ready" || state === "play") { e.preventDefault(); flap(); }
+    }
+  });
+  document.addEventListener("visibilitychange", () => { last = performance.now(); });
+
+  function setMode(m) {
+    mode = m; M = MODES[m];
+    $("mChill").setAttribute("aria-pressed", String(m === "chill"));
+    $("mRush").setAttribute("aria-pressed", String(m === "rush"));
+  }
+  $("mChill").addEventListener("click", () => setMode("chill"));
+  $("mRush").addEventListener("click", () => setMode("rush"));
+  $("play").addEventListener("click", startRun);
+  $("again").addEventListener("click", startRun);
+  $("toMenu").addEventListener("click", () => {
+    $("over").hidden = true; $("menu").hidden = false;
+    gates = []; bird = { y: 300, vy: 0, rot: 0, split: 0 }; state = "menu";
+    $("play").focus();
+  });
+
+  // ---------- loop ----------
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(1 / 30, (now - last) / 1000);
+    last = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  fit();
+  refreshBestLine();
+  const fontsReady = document.fonts && document.fonts.load
+    ? Promise.all([document.fonts.load(CARD_FONT), document.fonts.load("20px Bungee")]).catch(() => {})
+    : Promise.resolve();
+  fontsReady.then(() => { fit(); });
+  requestAnimationFrame(frame);
+})();
+</script>

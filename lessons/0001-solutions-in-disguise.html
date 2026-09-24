@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solutions in Disguise</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<main>
+
+<p class="kicker">Product Thinking · Lesson 1</p>
+<h1>Solutions in disguise</h1>
+<p class="subtitle">Most project ideas show up already dressed as solutions. The first skill is spotting that.</p>
+<div class="meta"><span>≈ 10 minutes</span><span>Mindset shift 1 of 3: solutions → problems</span><span>Source: IDG Module 1</span></div>
+
+<blockquote>
+  Great digital products start with problems, not solutions.
+  <footer>Institute of Digital Government, <a href="https://www.idg.gov.sg/guides-and-resources/productthinking1/">Understanding the Problem</a></footer>
+</blockquote>
+
+<p>IDG's point is that a project can fail even when it's built well: <em>“Projects can struggle even when execution is strong, especially when they are solving the wrong problem.”</em><span class="cite"><a href="https://www.idg.gov.sg/guides-and-resources/productthinking1/">[1]</a></span> Good execution doesn't rescue a badly chosen problem. Their fix: <em>“diagnose the real problem first, then decide what to build.”</em></p>
+
+<p>The trouble is that ideas rarely arrive as problems. They arrive as <strong>things to build</strong>.</p>
+
+<h2>The tell</h2>
+
+<p>A <strong>solution in disguise</strong> names an artefact: an app, a chatbot, a dashboard, “use AI to…”. It sounds like a problem because it's phrased as a need (“we need a…”), but it has already skipped the diagnosis.</p>
+
+<p>A <strong>problem</strong> names <em>who</em> is struggling, <em>with what</em>, and ideally <em>what it costs them</em>. It says nothing about the fix.</p>
+
+<div class="contrast">
+  <div><span class="label">Solution in disguise</span>“We need a chatbot for our help page.”</div>
+  <div><span class="label">Problem</span>“Customers email us the same five questions every day, and each reply takes staff ten minutes.”</div>
+</div>
+<p class="muted" style="font-size:.85rem">(Our example, not IDG's.)</p>
+
+<p>Look at what the second version opens up. Maybe a chatbot is the answer. Maybe it's rewriting one confusing paragraph on the help page, which costs an afternoon, not a project.</p>
+
+<div class="box">
+  <span class="box-title">Why this matters when you scope projects</span>
+  <p>Once the problem is clear, the first solution can be tiny. IDG's health appointment booking system didn't start as a booking system. It started as <em>a FormSG form feeding into Excel</em>, which was deliberately unscalable but cheap enough to prove people wanted it.<span class="cite"><a href="https://www.idg.gov.sg/guides-and-resources/productthinking5/">[2]</a></span> You can only get away with something that small if you know which problem you're testing.</p>
+</div>
+
+<h2>Practice: problem or solution?</h2>
+<p>Sort each statement. Watch out: some solutions sound like needs.</p>
+
+<div class="quiz">
+  <div class="q" data-answer="1">
+    <p class="q-prompt">“We should build a dashboard so managers can see ticket volumes.”</p>
+    <div class="q-options"><button>Problem</button><button>Solution</button></div>
+    <p class="q-feedback" data-right="It names the artefact (a dashboard). We still don't know what managers can't do today, or what that costs them."></p>
+  </div>
+  <div class="q" data-answer="0">
+    <p class="q-prompt">“Parents miss enrolment deadlines because the notice is buried on page 7 of a PDF.”</p>
+    <div class="q-options"><button>Problem</button><button>Solution</button></div>
+    <p class="q-feedback" data-right="It names who (parents), the struggle (missed deadlines), and a likely cause, without saying what to build." data-wrong="Nothing here says what to build. It names who is struggling (parents) and what goes wrong (missed deadlines), so it's a problem."></p>
+  </div>
+  <div class="q" data-answer="1">
+    <p class="q-prompt">“Let's use AI to summarise incoming customer emails.”</p>
+    <div class="q-options"><button>Problem</button><button>Solution</button></div>
+    <p class="q-feedback" data-right="“Use AI to…” is the most common disguise. Who suffers from unsummarised emails, and how?"></p>
+  </div>
+  <div class="q" data-answer="0">
+    <p class="q-prompt">“New volunteers stop turning up after their first session, and we don't know why.”</p>
+    <div class="q-options"><button>Problem</button><button>Solution</button></div>
+    <p class="q-feedback" data-right="A clear symptom with a named group of people. “We don't know why” is honest, and it's exactly where the Five Whys comes in." data-wrong="There's no artefact here, just a symptom (volunteers dropping out) and a named group. That makes it a problem, even an unexplained one."></p>
+  </div>
+  <div class="q" data-answer="1">
+    <p class="q-prompt">“Our clinic needs an online booking app.”</p>
+    <div class="q-options"><button>Problem</button><button>Solution</button></div>
+    <p class="q-feedback" data-right="The word “needs” makes it feel like a problem, but it names the thing to build. What is actually going wrong with bookings today?" data-wrong="Here “needs” is doing the disguising. An “online booking app” is an artefact. The problem is whatever is going wrong with bookings today."></p>
+  </div>
+  <div class="q" data-answer="0">
+    <p class="q-prompt">“Staff spend about three hours a week retyping the same data into two systems.”</p>
+    <div class="q-options"><button>Problem</button><button>Solution</button></div>
+    <p class="q-feedback" data-right="Who (staff), what (double entry), and what it costs (three hours a week). There's no fix in it yet, which is good." data-wrong="It doesn't propose anything. It names who (staff), what (double entry), and the cost (three hours a week), so it's a problem."></p>
+  </div>
+</div>
+
+<h2>Your turn: unwrap one</h2>
+<p>Take <strong>“Our clinic needs an online booking app”</strong> and rewrite it as a problem. You'll have to invent a plausible situation, and that's fine. Then tick off the checklist.</p>
+
+<div class="practice" data-key="0001-unwrap">
+  <textarea placeholder="Patients…"></textarea>
+  <ul class="checklist">
+    <li><label><input type="checkbox"> It names <strong>who</strong> is struggling (a specific group, not “users”)</label></li>
+    <li><label><input type="checkbox"> It says <strong>what goes wrong</strong> for them today</label></li>
+    <li><label><input type="checkbox"> It hints at <strong>what it costs</strong> (time, money, missed care, frustration)</label></li>
+    <li><label><input type="checkbox"> It does <strong>not</strong> mention an app, website, AI, or any other artefact</label></li>
+  </ul>
+</div>
+
+<details>
+  <summary>Show one possible answer</summary>
+  <p>“Working patients can only book by phone during office hours, when they're at work. Many give up, and the clinic sees about 15 no-shows or walk-ins a day that it can't plan staff around.”</p>
+  <p class="muted">Notice how this already hints at cheaper fixes than an app: an after-hours voicemail, a simple form, longer phone hours. It also fits IDG's point that <em>“many successful products started by solving a specific problem for a defined group of users”</em><span class="cite"><a href="https://www.idg.gov.sg/guides-and-resources/productthinking1/">[1]</a></span>, here working patients rather than “patients”.</p>
+</details>
+
+<h2>Check yourself</h2>
+<p>Try to answer these from memory before looking back up the page.</p>
+<div class="quiz">
+  <div class="q" data-answer="2">
+    <p class="q-prompt">According to IDG, why do projects with strong execution still struggle?</p>
+    <div class="q-options stack">
+      <button>The team lacked enough technical skill</button>
+      <button>The users were not consulted early enough</button>
+      <button>They were solving the wrong problem entirely</button>
+    </div>
+    <p class="q-feedback" data-right="“…especially when they are solving the wrong problem.” Diagnose first, then decide what to build." data-wrong="IDG's line is: “Projects can struggle even when execution is strong, especially when they are solving the wrong problem.”"></p>
+  </div>
+  <div class="q" data-answer="0">
+    <p class="q-prompt">What is the quickest tell that an idea is a solution in disguise?</p>
+    <div class="q-options stack">
+      <button>It names a thing to build</button>
+      <button>It names a group of users</button>
+      <button>It names a cost or a delay</button>
+    </div>
+    <p class="q-feedback" data-right="An artefact (app, chatbot, dashboard, “use AI to…”) means the diagnosis has been skipped." data-wrong="Users and costs belong in a good problem. The tell is an artefact: app, chatbot, dashboard, “use AI to…”."></p>
+  </div>
+</div>
+
+<div class="source">
+  <span class="box-title">Read next (5 min)</span>
+  <p style="margin:0"><a href="https://www.idg.gov.sg/guides-and-resources/productthinking1/"><strong>IDG, Product Thinking: Understanding the Problem</strong></a>. Watch the short video and look at the Grab / Amazon / Netflix examples of starting narrow. Then skim <a href="https://www.idg.gov.sg/guides-and-resources/productthinking7/">Key Takeaways</a> for where this course is heading.</p>
+</div>
+
+<p class="ask">Something unclear, or want to try unwrapping a real idea of your own? Ask me in the terminal. I'm your teacher for this course. You can also paste your rewrite from above and I'll give you feedback on it.</p>
+
+<nav class="pager">
+  <span><a href="../reference/course-map.html">Course map &amp; cheat sheet</a></span>
+  <span class="muted">Next: Lesson 2, The Five Whys (coming soon)</span>
+</nav>
+
+</main>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>
